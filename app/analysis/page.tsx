@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, X, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { AnalysisLoader } from "@/components/AnalysisLoader";
 
 // Mock Data
 const COMPETITORS = [
@@ -56,6 +58,7 @@ const COMPETITORS = [
 ];
 
 export default function AnalysisPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedCompetitorId, setSelectedCompetitorId] = useState<number | null>(null);
   const router = useRouter();
@@ -85,6 +88,20 @@ export default function AnalysisPage() {
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-8 lg:p-10 font-sans text-foreground">
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-50"
+          >
+            <AnalysisLoader onComplete={() => setIsLoading(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header / Navigation */}
       <header className="mb-8 flex items-start">
         <Link href="/" className="group flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">

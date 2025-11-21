@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconSearch } from "@tabler/icons-react";
+import { MorphingText } from "@/components/ui/morphing-text";
 
 export default function Home() {
   const [website, setWebsite] = useState("");
@@ -57,9 +58,18 @@ export default function Home() {
              </span>
           </div>
           
-          <h1 className="text-[40px] leading-[39px] font-heading font-bold text-primary">
-            See what your rivals are up to.
-          </h1>
+          <div className="min-h-[80px] flex items-center justify-center">
+            <MorphingText
+              texts={[
+                "See what your rivals are up to.",
+                "See what your competitors are planning.",
+                "See what the market is doing."
+              ]}
+              className="text-[40px] leading-[1.2] font-heading font-bold text-primary"
+              morphTime={1}
+              cooldownTime={3}
+            />
+          </div>
           
           <p className="text-[17px] leading-[26px] font-sans font-medium text-[#696969] max-w-lg mx-auto">
             Enter your website to instantly uncover your competitors' strategies, landing pages, and blog structures.
