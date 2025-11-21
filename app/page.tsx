@@ -58,11 +58,11 @@ export default function Home() {
              </span>
           </div>
           
-          <div className="min-h-[80px] flex items-center justify-center">
+          <div className="flex items-center justify-center w-full">
             <MorphingText
               texts={[
                 "See what your rivals are up to.",
-                "See what your competitors are planning.",
+                "Track competitor moves.",
                 "See what the market is doing."
               ]}
               className="text-[40px] leading-[1.2] font-heading font-bold text-primary"

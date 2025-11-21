@@ -18,7 +18,7 @@ export function MorphingText({
   cooldownTime = 3,
 }: MorphingTextProps) {
   const [index, setIndex] = useState(0);
-  const [isPresent, setIsPresent] = useState(true);
+  const [isMorphing, setIsMorphing] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -28,10 +28,19 @@ export function MorphingText({
     return () => clearInterval(interval);
   }, [texts.length, morphTime, cooldownTime]);
 
+  useEffect(() => {
+    setIsMorphing(true);
+    const timer = setTimeout(() => {
+      setIsMorphing(false);
+    }, morphTime * 1000);
+
+    return () => clearTimeout(timer);
+  }, [index, morphTime]);
+
   return (
     <div className={cn("relative mx-auto", className)}>
       {/* Invisible text to maintain layout width/height based on the longest text or current text */}
-      <span className="opacity-0 pointer-events-none" aria-hidden="true">
+      <span className="opacity-0 pointer-events-none w-full" aria-hidden="true">
         {texts.reduce((a, b) => (a.length > b.length ? a : b))}
       </span>
 
@@ -51,7 +60,7 @@ export function MorphingText({
 
       <div
         className="absolute inset-0 flex items-center justify-center"
-        style={{ filter: "url(#morph-goo)" }}
+        style={{ filter: isMorphing ? "url(#morph-goo)" : "none" }}
       >
         <AnimatePresence mode="popLayout">
           <motion.span
@@ -72,4 +81,3 @@ export function MorphingText({
     </div>
   );
 }
-
