@@ -131,9 +131,9 @@ export default function AnalysisPage() {
                   <button
                     key={idx}
                     onClick={() => handleImageClick(img.src, competitor.id)}
-                    className="relative flex-none w-[280px] aspect-[4/3] rounded-xl corner-squircle border border-border/50 bg-muted transition-all cursor-zoom-in group/image snap-start"
+                    className="relative flex-none w-[280px] aspect-[4/3] rounded-[24px] corner-squircle border border-border/50 bg-muted transition-all cursor-zoom-in group/image snap-start"
                   >
-                    <div className="absolute inset-0 rounded-xl corner-squircle overflow-hidden z-0">
+                    <div className="absolute inset-0 rounded-[24px] corner-squircle overflow-hidden z-0">
                       <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center text-muted-foreground/30">
                          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                             <span className="font-mono text-xs">Screenshot {idx + 1}</span>
@@ -147,7 +147,7 @@ export default function AnalysisPage() {
                       </div>
                     </div> 
                     {/* Hover ring drawn above content to avoid clipping */}
-                    <span className="pointer-events-none absolute inset-0 rounded-xl corner-squircle border-2 border-primary/20 opacity-0 group-hover/image:opacity-100 transition-opacity z-10"></span>
+                    <span className="pointer-events-none absolute inset-0 rounded-[24px] corner-squircle border-2 border-primary/20 opacity-0 group-hover/image:opacity-100 transition-opacity z-10"></span>
                   </button>
                 ))}
               </div>
@@ -174,7 +174,7 @@ export default function AnalysisPage() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Main Image Area */}
-            <div className="flex-1 relative bg-muted rounded-2xl corner-squircle overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex-1 relative bg-muted rounded-[24px] corner-squircle overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-muted-foreground">
                   <span className="font-mono text-lg">Full Size View</span>
                </div>
@@ -197,7 +197,7 @@ export default function AnalysisPage() {
                     </a>
                   </div>
                   
-                  <div className="bg-muted/50 p-4 rounded-xl corner-squircle border border-border/50">
+                  <div className="bg-muted/50 p-4 rounded-[24px] corner-squircle border border-border/50">
                     <span className="text-[10px] font-mono font-bold text-primary uppercase mb-2 block">
                       AI Analysis
                     </span>
@@ -216,16 +216,16 @@ export default function AnalysisPage() {
                      <button
                        key={idx}
                        onClick={() => setSelectedImage(img.src)}
-                       className="group relative w-full aspect-[16/9] rounded-lg corner-squircle transition-all"
+                       className="group relative w-full aspect-[16/9] rounded-[24px] corner-squircle transition-all"
                      >
-                        <div className="absolute inset-0 rounded-lg corner-squircle overflow-hidden bg-muted z-0">
+                        <div className="absolute inset-0 rounded-[24px] corner-squircle overflow-hidden bg-muted z-0">
                           <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                              <span className="font-mono text-[10px] text-muted-foreground/50">{img.label}</span>
                           </div>
                         </div>
                         {/* Selection/hover outline above, never clipped */}
                         <span className={cn(
-                          "pointer-events-none absolute inset-0 rounded-lg corner-squircle border-2 transition-opacity",
+                          "pointer-events-none absolute inset-0 rounded-[24px] corner-squircle border-2 transition-opacity",
                           selectedImage === img.src ? "opacity-100 border-primary" : "opacity-0 group-hover:opacity-100 border-primary/20"
                         )}></span>
                      </button>

@@ -1,7 +1,51 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { IconSearch } from "@tabler/icons-react";
 
 export default function Home() {
+  const [website, setWebsite] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const cleanDomain = (domain: string): string => {
+    // Remove any protocol if user includes it
+    let cleaned = domain.trim().toLowerCase();
+    cleaned = cleaned.replace(/^(https?:\/\/)?(www\.)?/, "");
+    cleaned = cleaned.replace(/\/.*$/, ""); // Remove any path
+    return cleaned;
+  };
+
+  const validateDomain = (domain: string): boolean => {
+    // Domain regex: allows domain.com, subdomain.domain.com, domain.co.uk, etc.
+    const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/;
+    
+    return domainRegex.test(domain);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!website.trim()) {
+      setError("Please enter a domain");
+      return;
+    }
+
+    const cleaned = cleanDomain(website);
+
+    if (!validateDomain(cleaned)) {
+      setError("Please enter a valid domain (e.g., example.com)");
+      return;
+    }
+
+    // Navigate to analysis page with the cleaned domain
+    router.push(`/analysis/${cleaned}`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20">
       <main className="flex flex-col gap-12 max-w-2xl w-full items-center text-center">
@@ -22,22 +66,34 @@ export default function Home() {
           </p>
         </div>
 
-        <form className="w-full max-w-md flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-4">
           <div className="flex flex-col text-left gap-2">
             <label htmlFor="website" className="text-[12px] font-mono font-bold text-[#696969] uppercase">
               Your Website URL
             </label>
             <Input
               id="website"
-              type="url"
-              placeholder="https://example.com"
+              type="text"
+              placeholder="example.com"
+              value={website}
+              onChange={(e) => {
+                setWebsite(e.target.value);
+                setError("");
+              }}
+              aria-invalid={error ? true : undefined}
             />
+            {error && (
+              <span className="text-[12px] text-destructive font-bold animate-in fade-in slide-in-from-top-2 duration-200">
+                {error}
+              </span>
+            )}
           </div>
 
           <Button
             type="submit"
             className="mt-2 w-full h-auto py-3 text-[17px] cursor-pointer"
           >
+            <IconSearch size={20} stroke={3} />
             Analyze Competitors
           </Button>
         </form>
