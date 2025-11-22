@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { IconSearch, IconArrowRight, IconCheck } from "@tabler/icons-react";
 import { MorphingText } from "@/components/ui/morphing-text";
@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQueryState, parseAsInteger } from "nuqs";
 import { getAnalysisByDomain } from "@/app/actions/get-analysis";
 
-export default function Home() {
+function HomeContent() {
   const [step, setStep] = useQueryState("step", parseAsInteger.withDefault(0));
   const [website, setWebsite] = useQueryState("website", { defaultValue: "" });
   const [name, setName] = useQueryState("name", { defaultValue: "" });
@@ -267,3 +267,18 @@ export default function Home() {
   );
 }
 
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20">
+        <div className="text-center">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-[rgb(255,252,236)] font-mono text-[12px] font-bold uppercase tracking-wide">
+            Loading...
+          </div>
+        </div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
+  );
+}

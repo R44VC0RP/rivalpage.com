@@ -4,6 +4,7 @@ import { analysisRequests, screenshots } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { takeScreenshot } from "@/lib/cloudflare-browser";
 import { uploadImageToR2 } from "@/lib/r2";
+import { sendAnalysisCompleteEmail } from "@/lib/email";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -61,7 +62,8 @@ export async function competitorAnalysisWorkflow(input: AnalysisInput) {
       competitorsWithLinks,
       screenshotMap,
       input.email,
-      input.name
+      input.name,
+      input.domain
     );
 
     const totalDuration = Date.now() - workflowStartTime;
@@ -441,7 +443,8 @@ async function finalizeAnalysisStep(
   competitorsWithLinks: CompetitorWithLinks[],
   screenshotMap: ScreenshotMap,
   email: string,
-  name: string
+  name: string,
+  domain: string
 ): Promise<void> {
   "use step";
 
@@ -478,8 +481,6 @@ async function finalizeAnalysisStep(
   console.log(`[Step 4]   - Successful screenshots: ${totalScreenshots}`);
   console.log(`[Step 4]   - Success rate: ${successRate}%`);
 
-  
-
   // Update the analysis request with results
   await db
     .update(analysisRequests)
@@ -492,7 +493,30 @@ async function finalizeAnalysisStep(
 
   const duration = Date.now() - startTime;
   console.log(`[Step 4] ✓ Analysis saved to database in ${duration}ms`);
-  console.log(`[Step 4] TODO: Send email notification to ${email}`);
+
+  // Send email notification
+  console.log(`[Step 4] Sending email notification to ${email}...`);
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const analysisUrl = `${baseUrl}/analysis/${encodeURIComponent(domain)}`;
+    
+    const emailResult = await sendAnalysisCompleteEmail({
+      to: email,
+      firstName: name.split(' ')[0], // Use first name only
+      domain,
+      competitorCount: competitorsWithLinks.length,
+      analysisUrl,
+    });
+
+    if (emailResult.success) {
+      console.log(`[Step 4] ✓ Email sent successfully to ${email}`);
+    } else {
+      console.error(`[Step 4] ✗ Failed to send email: ${emailResult.error}`);
+    }
+  } catch (error) {
+    console.error(`[Step 4] ✗ Error sending email:`, error);
+    // Don't fail the entire workflow if email fails
+  }
 }
 
 /**

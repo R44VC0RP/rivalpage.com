@@ -56,6 +56,21 @@ R2_PUBLIC_DOMAIN=your_r2_public_domain_here
 - Generate R2 API tokens with read/write permissions
 - Set up a public domain for your R2 bucket
 
+### Inbound Email API
+```
+INBOUND_API_KEY=your_inbound_api_key_here
+```
+- Get your API key from: https://inbound.new
+- Used to send completion emails to users
+- Compatible with Resend API format
+
+### App Configuration
+```
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+- Set to your production URL in production (e.g., `https://rivalpage.com`)
+- Used for generating analysis links in emails
+
 ## Database Migration
 
 After setting up the environment variables, run the database migration:
