@@ -39,10 +39,14 @@ export function MorphingText({
 
   return (
     <div className={cn("relative mx-auto", className)}>
-      {/* Invisible text to maintain layout width/height based on the longest text or current text */}
-      <span className="opacity-0 pointer-events-none w-full" aria-hidden="true">
-        {texts.reduce((a, b) => (a.length > b.length ? a : b))}
-      </span>
+      {/* Size container based on the longest text using CSS Grid stack technique */}
+      <div className="invisible grid place-items-center" aria-hidden="true">
+        {texts.map((text, index) => (
+          <span key={index} className={cn("col-start-1 row-start-1 opacity-0", className)}>
+            {text}
+          </span>
+        ))}
+      </div>
 
       {/* Filter definition */}
       <svg className="absolute size-0 pointer-events-none">
@@ -72,7 +76,7 @@ export function MorphingText({
               duration: morphTime,
               ease: "easeInOut",
             }}
-            className={cn("absolute inset-0 flex items-center justify-center text-center", className)}
+            className={cn("absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center min-w-max", className)}
           >
             {texts[index]}
           </motion.span>

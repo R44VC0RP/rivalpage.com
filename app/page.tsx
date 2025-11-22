@@ -4,48 +4,152 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconSearch } from "@tabler/icons-react";
+import { IconSearch, IconArrowRight, IconCheck } from "@tabler/icons-react";
 import { MorphingText } from "@/components/ui/morphing-text";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQueryState, parseAsInteger } from "nuqs";
+import { getAnalysisByDomain } from "@/app/actions/get-analysis";
 
 export default function Home() {
-  const [website, setWebsite] = useState("");
+  const [step, setStep] = useQueryState("step", parseAsInteger.withDefault(0));
+  const [website, setWebsite] = useQueryState("website", { defaultValue: "" });
+  const [name, setName] = useQueryState("name", { defaultValue: "" });
+  const [email, setEmail] = useQueryState("email", { defaultValue: "" });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const cleanDomain = (domain: string): string => {
-    // Remove any protocol if user includes it
     let cleaned = domain.trim().toLowerCase();
     cleaned = cleaned.replace(/^(https?:\/\/)?(www\.)?/, "");
-    cleaned = cleaned.replace(/\/.*$/, ""); // Remove any path
+    cleaned = cleaned.replace(/\/.*$/, "");
     return cleaned;
   };
 
   const validateDomain = (domain: string): boolean => {
-    // Domain regex: allows domain.com, subdomain.domain.com, domain.co.uk, etc.
     const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/;
-    
     return domainRegex.test(domain);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (!website.trim()) {
-      setError("Please enter a domain");
-      return;
-    }
-
-    const cleaned = cleanDomain(website);
-
-    if (!validateDomain(cleaned)) {
-      setError("Please enter a valid domain (e.g., example.com)");
-      return;
-    }
-
-    // Navigate to analysis page with the cleaned domain
-    router.push(`/analysis/${cleaned}`);
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
+
+  const handleNext = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (step === 0) {
+      if (!website.trim()) {
+        setError("Please enter a domain");
+        return;
+      }
+      const cleaned = cleanDomain(website);
+      if (!validateDomain(cleaned)) {
+        setError("Please enter a valid domain (e.g., example.com)");
+        return;
+      }
+      
+      // Check if analysis already exists for this domain
+      try {
+        const existingAnalysis = await getAnalysisByDomain(cleaned);
+        
+        if (existingAnalysis) {
+          // Redirect to existing analysis page
+          router.push(`/analysis/${encodeURIComponent(cleaned)}`);
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking for existing analysis:", error);
+        // Continue with normal flow if check fails
+      }
+      
+      // No existing analysis found, continue to collect user info
+      await setWebsite(cleaned);
+      await setStep(1);
+    } else if (step === 1) {
+      if (!name.trim()) {
+        setError("Please enter your name");
+        return;
+      }
+      await setStep(2);
+    } else if (step === 2) {
+      if (!email.trim()) {
+        setError("Please enter your email");
+        return;
+      }
+      if (!validateEmail(email)) {
+        setError("Please enter a valid email address");
+        return;
+      }
+      
+      // Submit final form
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            domain: website,
+            name: name,
+            email: email,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to start analysis");
+        }
+
+        // Show success message and reset form
+        setSuccess(true);
+        setTimeout(async () => {
+          await setStep(0);
+          await setWebsite("");
+          await setName("");
+          await setEmail("");
+          setSuccess(false);
+        }, 3000);
+      } catch (error) {
+        console.error("Error submitting analysis:", error);
+        setError("Failed to start analysis. Please try again.");
+      }
+    }
+  };
+
+  const steps = [
+    {
+      id: "website",
+      label: "Your Website URL",
+      placeholder: "example.com",
+      value: website,
+      type: "text",
+      buttonText: "Analyze Competitors",
+      icon: <IconSearch size={20} stroke={3} />,
+    },
+    {
+      id: "name",
+      label: "What's your name?",
+      placeholder: "Jane Doe",
+      value: name,
+      type: "text",
+      buttonText: "Continue",
+      icon: <IconArrowRight size={20} stroke={3} />,
+    },
+    {
+      id: "email",
+      label: "Where should we send your analysis?",
+      placeholder: "jane@company.com",
+      value: email,
+      type: "email",
+      buttonText: "Send Analysis",
+      icon: <IconCheck size={20} stroke={3} />,
+    },
+  ];
+
+  const currentStep = steps[step];
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 sm:p-20">
@@ -76,37 +180,68 @@ export default function Home() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-md flex flex-col gap-4">
-          <div className="flex flex-col text-left gap-2">
-            <label htmlFor="website" className="text-[12px] font-mono font-bold text-[#696969] uppercase">
-              Your Website URL
-            </label>
-            <Input
-              id="website"
-              type="text"
-              placeholder="example.com"
-              value={website}
-              onChange={(e) => {
-                setWebsite(e.target.value);
-                setError("");
-              }}
-              aria-invalid={error ? true : undefined}
-            />
-            {error && (
-              <span className="text-[12px] text-destructive font-bold animate-in fade-in slide-in-from-top-2 duration-200">
-                {error}
-              </span>
-            )}
-          </div>
+        <div className="w-full max-w-md min-h-[140px]">
+          <form onSubmit={handleNext} className="flex flex-col gap-4">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={step}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col text-left gap-2 w-full"
+              >
+                <div className="flex justify-between items-center gap-4 flex-wrap">
+                  <motion.label 
+                    htmlFor={currentStep.id} 
+                    className="text-[12px] font-mono font-bold text-[#696969] uppercase whitespace-nowrap"
+                  >
+                    {currentStep.label}
+                  </motion.label>
+                  {(error || success) && (
+                    <motion.span 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`text-[12px] font-bold whitespace-nowrap ${success ? 'text-green-600' : 'text-destructive'}`}
+                    >
+                      {success ? 'Analysis queued! Check your email.' : error}
+                    </motion.span>
+                  )}
+                </div>
+                <Input
+                  id={currentStep.id}
+                  type={currentStep.type}
+                  placeholder={currentStep.placeholder}
+                  value={currentStep.value}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (currentStep.id === "website") {
+                      setWebsite(value);
+                    } else if (currentStep.id === "name") {
+                      setName(value);
+                    } else if (currentStep.id === "email") {
+                      setEmail(value);
+                    }
+                    setError("");
+                  }}
+                  autoFocus
+                  className="w-full transition-all duration-300"
+                  aria-invalid={error ? true : undefined}
+                />
+              </motion.div>
+            </AnimatePresence>
 
-          <Button
-            type="submit"
-            className="mt-2 w-full h-auto py-3 text-[17px] cursor-pointer"
-          >
-            <IconSearch size={20} stroke={3} />
-            Analyze Competitors
-          </Button>
-        </form>
+            <Button
+              type="submit"
+              className="mt-2 w-full h-auto py-3 text-[17px] cursor-pointer bg-[url('/noise-light.png')] bg-[length:100px_100px] bg-repeat"
+            >
+              {step === 0 ? <IconSearch size={20} stroke={3} /> : 
+               step === 1 ? <IconArrowRight size={20} stroke={3} /> : 
+               <IconCheck size={20} stroke={3} />}
+              {currentStep.buttonText}
+            </Button>
+          </form>
+        </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full text-left mt-8">
           <div className="space-y-2">
@@ -131,3 +266,4 @@ export default function Home() {
     </div>
   );
 }
+

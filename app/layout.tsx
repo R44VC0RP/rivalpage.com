@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const marlin = localFont({
   src: "../public/fonts/MarlinSoftSQ-Bold.woff2",
@@ -35,7 +36,9 @@ export default function RootLayout({
       <body
         className={`${marlin.variable} ${inter.variable} ${favorit.variable} antialiased font-sans`}
       >
-        {children}
+        <NuqsAdapter>
+          {children}
+        </NuqsAdapter>
       </body>
     </html>
   );

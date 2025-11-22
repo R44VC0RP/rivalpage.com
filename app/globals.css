@@ -48,7 +48,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #FFFFFF;
+  --background: #ffffff;
   --foreground: #696969; /* InterVariable color */
   
   --card: #FFFFFF;
@@ -57,7 +57,7 @@
   --popover: #FFFFFF;
   --popover-foreground: #696969;
   
-  --primary: #3239FB; /* Text color / Heading color approx */
+  --primary: #4701FF; /* Text color / Heading color approx */
   --primary-foreground: #FFFFFF;
   
   --secondary: #F5F5F5;
